@@ -1,0 +1,33 @@
+{
+  "name": "frm",
+  "version": "0.1.0",
+  "description": "A TypeScript ORM with a focus on simplicity and extensibility",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "example": "ts-node example.ts"
+  },
+  "keywords": [
+    "orm",
+    "typescript",
+    "database",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.8.0",
+    "@types/sqlite3": "^3.1.10",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  }
+}
