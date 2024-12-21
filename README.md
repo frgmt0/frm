@@ -5,6 +5,7 @@
 ## what is fRM? 🛠️
 
 fRM is an object-relational mapper (ORM) built to:
+
 • handle database operations with minimal setup and maximum flexibility.
 
 • provide type safety (this is TypeScript, after all).
@@ -18,6 +19,7 @@ oh, and did we mention it’s built entirely in TypeScript from scratch? no unne
 ### here’s where we’re going, one step at a time:
 
 **phase 0: the basics (aka “getting our feet wet”)**
+
 • core operations: create, insert, query, update (the essentials).
 
 • basic SQLite support: start small, think big.
@@ -27,6 +29,7 @@ oh, and did we mention it’s built entirely in TypeScript from scratch? no unne
 *(status: nailed it.)*
 
 **phase 1: advanced operations (aka “let’s get serious”)**
+
 • delete operations (because mistakes happen).
 
 • transaction support (money moves).
@@ -38,6 +41,7 @@ oh, and did we mention it’s built entirely in TypeScript from scratch? no unne
 *(status: we’re working on it. patience is a virtue.)*
 
 **phase 2: custom schema system (aka “making it fancy”)**
+
 • introduce .frm schema files with XML-like syntax for easy management.
 
 • auto-generate TypeScript models and migrations (less typing, more TypeScript-ing).
@@ -47,6 +51,7 @@ oh, and did we mention it’s built entirely in TypeScript from scratch? no unne
 *(status: coming soon, stay hyped.)*
 
 **phase 3: SQLite optimization (aka “speed demon mode”)**
+
 • query optimization and index management (make SQLite zoom).
 
 • bulk operations and caching (because time is money).
@@ -56,6 +61,7 @@ oh, and did we mention it’s built entirely in TypeScript from scratch? no unne
 *(status: buckle up.)*
 
 **phase 4: multi-database support (aka “the big leagues”)**
+
 • abstract database interface (one ORM to rule them all).
 
 • PostgreSQL and MongoDB support with database-specific features.
@@ -67,6 +73,7 @@ oh, and did we mention it’s built entirely in TypeScript from scratch? no unne
 ## why fRM? 🤔
 
 because you deserve an ORM that’s:
+
 • simple: handles the hard stuff so you can focus on building.
 
 • powerful: scales with your project without breaking a sweat.
