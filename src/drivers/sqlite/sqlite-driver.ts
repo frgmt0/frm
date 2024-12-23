@@ -43,6 +43,9 @@ export class SQLiteDriver implements DatabaseDriver {
     const params: any[] = [];
 
     Object.entries(where).forEach(([field, condition]) => {
+      // Quote field name unless it contains a dot
+      const quotedField = field.includes('.') ? field : `"${field}"`;
+      
       if (typeof condition === 'object' && condition !== null) {
           const operatorMap = {
               eq: '=',
@@ -57,23 +60,23 @@ export class SQLiteDriver implements DatabaseDriver {
           const operator = Object.keys(condition).find(op => op in operatorMap) as keyof typeof operatorMap;
   
           if (operator && operator in operatorMap) {
-              conditions.push(`${field} ${operatorMap[operator]} ?`);
+              conditions.push(`${quotedField} ${operatorMap[operator]} ?`);
               params.push(condition[operator]);
           } else if ('in' in condition) {
-              conditions.push(`${field} IN (${condition.in.map(() => '?').join(', ')})`);
+              conditions.push(`${quotedField} IN (${condition.in.map(() => '?').join(', ')})`);
               params.push(...condition.in);
           } else if ('between' in condition) {
-              conditions.push(`${field} BETWEEN ? AND ?`);
+              conditions.push(`${quotedField} BETWEEN ? AND ?`);
               params.push(condition.between[0], condition.between[1]);
           } else if ('isNull' in condition) {
-              conditions.push(`${field} IS ${condition.isNull ? '' : 'NOT '}NULL`);
+              conditions.push(`${quotedField} IS ${condition.isNull ? '' : 'NOT '}NULL`);
           }
       } else {
           // Direct value comparison (equals)
-          conditions.push(`${field} = ?`);
+          conditions.push(`${quotedField} = ?`);
           params.push(condition);
       }
-  });
+    });
 
     return {
       sql: conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '',
@@ -84,9 +87,17 @@ export class SQLiteDriver implements DatabaseDriver {
   private buildJoinClauses(joins?: JoinClause[]): string {
     if (!joins || joins.length === 0) return '';
     
-    return joins.map(join => 
-      `${join.type} JOIN ${join.table} ON ${join.on.leftField} = ${join.on.rightField}`
-    ).join(' ');
+    return joins.map(join => {
+      const tableName = join.table.includes('.') ? join.table : `"${join.table}"`;
+      // Don't quote field names if they contain dots (table.column format)
+      const leftField = join.on.leftField.includes('.') ? join.on.leftField : `"${join.on.leftField}"`;
+      const rightField = join.on.rightField.includes('.') ? join.on.rightField : `"${join.on.rightField}"`;
+      return `${join.type} JOIN ${tableName} ON ${leftField} = ${rightField}`;
+    }).join(' ');
+  }
+
+  private quoteIdentifier(identifier: string): string {
+    return identifier.includes('.') ? identifier : `"${identifier}"`;
   }
 
   async beginTransaction(): Promise<Transaction> {
@@ -154,7 +165,7 @@ export class SQLiteDriver implements DatabaseDriver {
     }
 
     const columns = schema.columns.map(col => {
-      let def = `${col.name} ${col.type}`;
+      let def = `"${col.name}" ${col.type}`;
       if (col.primaryKey) def += ' PRIMARY KEY';
       if (col.autoIncrement) def += ' AUTOINCREMENT';
       if (!col.nullable) def += ' NOT NULL';
@@ -163,7 +174,7 @@ export class SQLiteDriver implements DatabaseDriver {
       return def;
     }).join(', ');
 
-    const query = `CREATE TABLE IF NOT EXISTS ${schema.name} (${columns})`;
+    const query = `CREATE TABLE IF NOT EXISTS "${schema.name}" (${columns})`;
 
     return new Promise((resolve) => {
       this.db!.run(query, (err) => {
@@ -181,10 +192,10 @@ export class SQLiteDriver implements DatabaseDriver {
       return { success: false, error: new Error('Not connected to database') };
     }
 
-    const columns = Object.keys(data);
+    const columns = Object.keys(data).map(col => `"${col}"`);
     const values = Object.values(data);
     const placeholders = new Array(values.length).fill('?').join(', ');
-    const query = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`;
+    const query = `INSERT INTO "${table}" (${columns.join(', ')}) VALUES (${placeholders})`;
 
     return new Promise((resolve) => {
       this.db!.run(query, values, function(err) {
@@ -200,9 +211,14 @@ export class SQLiteDriver implements DatabaseDriver {
     });
   }
 
+  private buildColumnList(columns?: string[]): string {
+    if (!columns || columns.length === 0) return '*';
+    return columns.map(col => this.quoteIdentifier(col)).join(', ');
+  }
+
   async select(
     table: string, 
-    columns: string[] = ['*'], 
+    columns?: string[], 
     where?: WhereClause,
     joins?: JoinClause[]
   ): Promise<QueryResult> {
@@ -210,26 +226,32 @@ export class SQLiteDriver implements DatabaseDriver {
       return { success: false, error: new Error('Not connected to database') };
     }
 
-    let query = `SELECT ${columns.join(', ')} FROM ${table}`;
-    
-    // Add joins if provided
-    if (joins) {
-      query += ' ' + this.buildJoinClauses(joins);
-    }
+    try {
+      const tableName = table.includes('.') ? table : `"${table}"`;
+      let query = `SELECT ${this.buildColumnList(columns)} FROM ${tableName}`;
+      
+      if (joins) {
+        query += ' ' + this.buildJoinClauses(joins);
+      }
 
-    // Build where clause
-    const { sql: whereClause, params: whereParams } = this.buildWhereClause(where);
-    query += whereClause;
+      const { sql: whereClause, params: whereParams } = this.buildWhereClause(where);
+      query += whereClause;
 
-    return new Promise((resolve) => {
-      this.db!.all(query, whereParams, (err, rows) => {
-        if (err) {
-          resolve({ success: false, error: err });
-        } else {
-          resolve({ success: true, data: rows });
-        }
+      return new Promise((resolve) => {
+        this.db!.all(query, whereParams, (err, rows) => {
+          if (err) {
+            resolve({ success: false, error: err });
+          } else {
+            resolve({ success: true, data: rows });
+          }
+        });
       });
-    });
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error : new Error('Unknown error occurred') 
+      };
+    }
   }
 
   async update(table: string, data: Record<string, any>, where: WhereClause): Promise<QueryResult> {
@@ -237,11 +259,11 @@ export class SQLiteDriver implements DatabaseDriver {
       return { success: false, error: new Error('Not connected to database') };
     }
 
-    const setColumns = Object.keys(data).map(key => `${key} = ?`);
+    const setColumns = Object.keys(data).map(key => `"${key}" = ?`);
     const { sql: whereClause, params: whereParams } = this.buildWhereClause(where);
     const values = [...Object.values(data), ...whereParams];
     
-    const query = `UPDATE ${table} SET ${setColumns.join(', ')}${whereClause}`;
+    const query = `UPDATE "${table}" SET ${setColumns.join(', ')}${whereClause}`;
 
     return new Promise((resolve) => {
       this.db!.run(query, values, function(err) {
@@ -263,7 +285,7 @@ export class SQLiteDriver implements DatabaseDriver {
     }
 
     const { sql: whereClause, params: whereParams } = this.buildWhereClause(where);
-    const query = `DELETE FROM ${table}${whereClause}`;
+    const query = `DELETE FROM "${table}"${whereClause}`;
 
     return new Promise((resolve) => {
       this.db!.run(query, whereParams, function(err) {

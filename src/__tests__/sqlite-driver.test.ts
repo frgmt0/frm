@@ -152,7 +152,6 @@ describe('SQLiteDriver', () => {
     });
   });
 
-  // Previous test cases...
   describe('createTable', () => {
     it('should create a table with the specified schema', async () => {
       const schema: TableSchema = {

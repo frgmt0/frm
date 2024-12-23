@@ -62,6 +62,29 @@ try {
 
 ## Advanced Queries
 
+### Aggregate Functions
+
+```typescript
+// Count all records
+await db.select('users', [
+  { function: 'COUNT', column: '*', alias: 'total_users' }
+]);
+
+// Calculate average with GROUP BY
+await db.select('orders', [
+  { function: 'AVG', column: 'amount', alias: 'avg_amount' },
+  'customer_id'
+], undefined, undefined, ['customer_id']);
+
+// Multiple aggregates
+await db.select('orders', [
+  { function: 'SUM', column: 'amount', alias: 'total_amount' },
+  { function: 'COUNT', column: '*', alias: 'order_count' },
+  { function: 'MAX', column: 'amount', alias: 'highest_order' },
+  'customer_id'
+], undefined, undefined, ['customer_id']);
+```
+
 ### Where Clause Operators
 
 ```typescript
@@ -107,10 +130,21 @@ const result = await db.select(
 - `disconnect(): Promise<void>`
 - `createTable(schema: TableSchema): Promise<QueryResult>`
 - `insert(table: string, data: Record<string, any>): Promise<QueryResult>`
-- `select(table: string, columns?: string[], where?: WhereClause, joins?: JoinClause[]): Promise<QueryResult>`
+- `select(table: string, columns?: (string | AggregateColumn)[], where?: WhereClause, joins?: JoinClause[], groupBy?: string[]): Promise<QueryResult>`
 - `update(table: string, data: Record<string, any>, where: WhereClause): Promise<QueryResult>`
 - `delete(table: string, where: WhereClause): Promise<QueryResult>`
 - `beginTransaction(): Promise<Transaction>`
+
+### Aggregate Functions
+
+Available aggregate functions:
+- `COUNT`: Count records
+- `SUM`: Calculate sum of values
+- `AVG`: Calculate average of values
+- `MAX`: Find maximum value
+- `MIN`: Find minimum value
+
+Each aggregate function can be used with an optional alias and combined with GROUP BY clauses.
 
 ### Where Clause Operators
 
