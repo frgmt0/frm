@@ -1,6 +1,6 @@
 {
   "name": "frm",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "A TypeScript ORM with a focus on simplicity and extensibility",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
