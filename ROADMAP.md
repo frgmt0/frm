@@ -17,10 +17,10 @@
   - [x] Usage examples
 
 ## Phase 1: Advanced Operations
-- [ ] Delete operations
-- [ ] Transaction support
-- [ ] Where clause builder
-- [ ] Join operations
+- [x] Delete operations
+- [x] Transaction support
+- [x] Where clause builder
+- [x] Join operations
 - [ ] Aggregate functions
 - [ ] Migration system
 - [ ] Connection pooling

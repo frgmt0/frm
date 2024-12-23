@@ -4,20 +4,40 @@
   "description": "A TypeScript ORM with a focus on simplicity and extensibility",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
-    "example": "ts-node example.ts"
+    "example": "ts-node example.ts",
+    "prepublishOnly": "npm test && npm run build",
+    "prepare": "npm run build",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/frm.git"
   },
   "keywords": [
     "orm",
     "typescript",
     "database",
-    "sqlite"
+    "sqlite",
+    "sql",
+    "query-builder",
+    "database-toolkit"
   ],
-  "author": "",
+  "author": "Your Name",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/frm/issues"
+  },
+  "homepage": "https://github.com/yourusername/frm#readme",
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^20.8.0",

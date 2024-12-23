@@ -1,4 +1,12 @@
-import { DatabaseConfig, DatabaseDriver, QueryResult, TableSchema } from '../types/database';
+import { 
+  DatabaseConfig, 
+  DatabaseDriver, 
+  QueryResult, 
+  TableSchema,
+  Transaction,
+  WhereClause,
+  JoinClause
+} from '../types/database';
 import { SQLiteDriver } from '../drivers/sqlite/sqlite-driver';
 
 export class Database {
@@ -30,15 +38,28 @@ export class Database {
     return this.driver.createTable(schema);
   }
 
+  async beginTransaction(): Promise<Transaction> {
+    return this.driver.beginTransaction();
+  }
+
   async insert(table: string, data: Record<string, any>): Promise<QueryResult> {
     return this.driver.insert(table, data);
   }
 
-  async select(table: string, columns?: string[], where?: Record<string, any>): Promise<QueryResult> {
-    return this.driver.select(table, columns, where);
+  async select(
+    table: string, 
+    columns?: string[], 
+    where?: WhereClause,
+    joins?: JoinClause[]
+  ): Promise<QueryResult> {
+    return this.driver.select(table, columns, where, joins);
   }
 
-  async update(table: string, data: Record<string, any>, where: Record<string, any>): Promise<QueryResult> {
+  async update(table: string, data: Record<string, any>, where: WhereClause): Promise<QueryResult> {
     return this.driver.update(table, data, where);
+  }
+
+  async delete(table: string, where: WhereClause): Promise<QueryResult> {
+    return this.driver.delete(table, where);
   }
 }
